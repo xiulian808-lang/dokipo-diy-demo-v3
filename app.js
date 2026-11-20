@@ -49,7 +49,7 @@
   }
   function bigCard(c) {
     const ids = catItems(c); const lead = P(hotFirst(ids)[0]);
-    return `<a class="card" href="#diy/${c.tab}?go=${c.id}">
+    return `<a class="card" href="#p/${lead.id}">
       <div class="ph"><img src="${A(lead.imgs[0])}" loading="lazy">${ref(lead)}</div>
       <div class="meta"><div><div class="count">${ids.length} styles · from ${money(minPrice(ids))}</div><div class="nm nm-lg">${esc(c.name)}</div><div class="cn">${c.cn}</div></div><span class="arrow">→</span></div></a>`;
   }
@@ -80,7 +80,7 @@
     const pills = cats.map(c => `<a class="pill" data-go="${c.id}">${c.name}</a>`).join('');
     const body = tab === 'all'
       ? `<div class="grid">${cats.map(bigCard).join('')}</div>
-         <div class="note"><span class="pin">3</span><b>All</b>：8 大类各 1 张代表卡（Merch 5 + Gifts 3），按热门排序。点卡片切到对应标签（Merch / Gifts）并<b>直接滚到这一类</b>，不再进二级页。</div>`
+         <div class="note"><span class="pin">3</span><b>All</b>：8 大类各 1 张代表卡（Merch 5 + Gifts 3），按热门排序。点卡片<b>直接进这一类最热门商品的详情页（= 编辑器）</b>，进去后用 Finish / Style 切换同类其他款。</div>`
       : cats.map(c => { const ids = hotFirst(catItems(c)); const isOpen = open[c.id] || q.go === c.id; return `<section class="group" id="sec-${c.id}"><div class="group-hd"><div><h3>${c.name} <span class="cn">${c.cn}</span> <small class="muted-s">${ids.length} styles</small></h3></div>${ids.length > 4 ? `<button class="viewall" data-open="${c.id}">${isOpen ? 'Show less ↑' : `View all ${ids.length} ↓`}</button>` : ''}</div>
           <div class="grid">${(isOpen ? ids : ids.slice(0, 4)).map(i => productCard(P(i))).join('')}</div></section>`; }).join('') +
         `<div class="note"><span class="pin">4</span><b>${tab === 'goods' ? 'Merch 谷子' : 'Gifts 礼品'}</b>：这一页就是原来的二级页。每个大类一排 4 个热门款；<b>「View all N ↓」就地展开全部</b>，再点「Show less ↑」收起，不跳页。<br>
@@ -209,7 +209,10 @@
     const c = cat(p.cat), t = typeOf(c, p.type);
     const acrylic = p.cat === 'keychains' && p.type !== 'other-kc' || p.cat === 'standees';
     const isKC = p.cat === 'keychains';
-    const e = st['ed' + pid] = st['ed' + pid] || { mode: acrylic ? 'design' : 'photos', img: 0, tool: '', scale: 100, rot: 0, x: 0, y: 0, flip: false, side: 'front', text: '', font: 'Sans', color: '#14182E', tx: 0, ty: 0, shape: 0, acol: 0, acc: 7, accol: 9, size: 2, qty: 1, opt: {}, semi: false, hx: null, hy: null, tab: 'details', hist: [] };
+    // 画布类型：cut=沿轮廓刀线（亚克力/模切贴纸）；round=圆形徽章；card=卡片；mock=实物图上的印刷区
+    const kind = acrylic || p.type === 'diecut' || p.type === 'pins' ? 'cut' : p.type === 'button' ? 'round' : (p.cat === 'cards' || p.type === 'sheets') ? 'card' : 'mock';
+    const shiny = /Holo|Cracked|Lenticular|Foil|Glitter|Rainbow/i.test(p.name);
+    const e = st['ed' + pid] = st['ed' + pid] || { mode: 'design', img: 0, tool: '', scale: 100, rot: 0, x: 0, y: 0, flip: false, side: 'front', text: '', font: 'Sans', color: '#14182E', tx: 0, ty: 0, shape: 0, acol: 0, acc: 7, accol: 9, size: 2, qty: 1, opt: {}, semi: false, hx: null, hy: null, tab: 'details', hist: [] };
     const shapes = [['Die-cut', 'keychain-shape-die-cut'], ['Round', 'keychain-shape-round'], ['Rectangle', 'keychain-shape-rectangle']];
     const acols = ['clear', 'pink', 'lilac', 'mint', 'blue'];
     const accs = ['carabiner', 'ball_chain', 'star', 'heart', 'bow', 'charm_ring', 'bunny', 'lobster_clasp', 'cat', 'sakura', 'd_ring', 'phone_strap', 'crescent_moon', 'bear', 'bat', 'apple'];
@@ -238,22 +241,30 @@
       shipping: `<table class="spec"><tr><th>United States</th><td>$6.25 · 8–10 business days</td></tr><tr><th>United Kingdom</th><td>$3.99 · 8–16 business days</td></tr><tr><th>Canada</th><td>$5.99 · 8–16 business days</td></tr><tr><th>Australia</th><td>$4.39 · 8–15 business days</td></tr><tr><th>Production</th><td>Made to order in 8–10 business days</td></tr></table>`,
       care: `<p>Wipe gently with a soft dry cloth. Keep away from heat and direct sunlight.</p>`
     };
-    const tools = acrylic ? [['image', '🖼', 'Image'], ['hole', '◎', 'Hole'], ['semi', '◐', 'Semi<br>Transparent'], ['text', 'T', 'Text'], ['photos', '📷', 'Photos']] : [['image', '🖼', 'Image'], ['text', 'T', 'Text'], ['photos', '📷', 'Photos']];
+    const tools = acrylic ? [['image', '🖼', 'Image'], ['adjust', '⤢', 'Size &<br>Rotate'], ['hole', '◎', 'Hole'], ['semi', '◐', 'Semi<br>Transparent'], ['text', 'T', 'Text'], ['photos', '📷', 'Photos']] : [['image', '🖼', 'Image'], ['adjust', '⤢', 'Size &<br>Rotate'], ['text', 'T', 'Text'], ['photos', '📷', 'Photos']];
     const stage = e.mode === 'photos'
       ? `<div class="ph-stage"><img src="${A(p.imgs[e.img] || p.imgs[0])}">${ref(p)}<span class="count">${e.img + 1}/${p.imgs.length}</span></div>
          <div class="thumbs2">${p.imgs.map((im, i) => `<div class="${i === e.img ? 'on' : ''}" data-img="${i}"><img src="${A(im)}"></div>`).join('')}</div>`
       : `<div class="vg-canvas ${e.tool === 'hole' ? 'holemode' : ''}" id="vgc">
-          <div class="vg-ruler-v"><span>${mm} mm</span></div>
-          <div class="vg-art ${e.side}" id="edArt">
+          ${kind === 'cut' ? `<div class="vg-ruler-v"><span>${mm} mm</span></div>` : ''}
+          ${kind === 'mock' ? `<img class="vg-bgphoto" src="${A(p.imgs[0])}">` : ''}
+          ${kind !== 'cut' ? `<div class="vg-frame ${kind} ${shiny ? 'shiny' : ''}" id="frame"><img class="vg-clipart" id="clipArt" src="${IPART()}" draggable="false">${kind === 'mock' ? '<span class="pa-lbl">Print area</span>' : ''}</div>` : ''}
+          <div class="vg-art ${e.side} ${kind !== 'cut' ? 'ghost' : ''}" id="edArt">
             ${isKC ? `<img class="vg-clasp" id="clasp" src="${R(`assets/opt/dokipo-customizer-v3-clasp_${accs[e.acc]}.webp`)}">` : ''}
-            <img class="vg-cut" id="cutImg" draggable="false">
+            ${kind === 'cut' ? '<img class="vg-cut" id="cutImg" draggable="false">' : ''}
             ${isKC ? `<i class="vg-hole" id="hole"></i>` : ''}
-            <i class="h tl" data-h="s"></i><i class="h br" data-h="s"></i><i class="h rot" data-h="r">↻</i>
+            <i class="h tl" data-h="s" data-tip="Drag to resize"></i><i class="h tr" data-h="s" data-tip="Drag to resize"></i><i class="h bl" data-h="s" data-tip="Drag to resize"></i><i class="h br" data-h="s" data-tip="Drag to resize"></i><i class="stem"></i><i class="h rot" data-h="r" data-tip="Drag to rotate">↻</i>
           </div>
+          <div class="vg-val" id="vgVal"></div>
+          ${st.hinted ? '' : '<div class="vg-hint" id="vgHint">✋ Drag to move · ⤡ drag a corner to resize · ↻ drag to rotate</div>'}
           <div class="ed2-text" id="edText" style="${e.text ? '' : 'display:none;'}font-family:${FONT[e.font]};color:${e.color}">${esc(e.text)}</div>
           ${e.tool === 'hole' ? `<div class="vg-tip">Drag the ◎ hole along the edge · the accessory follows it</div>` : ''}
         </div>
-        <div class="vg-mini"><button data-t="zout">－</button><span>${Math.round(e.scale)}%</span><button data-t="zin">＋</button><i></i><button data-t="rl">⟲</button><button data-t="rr">⟳</button><button data-t="flip">⇋</button><button data-t="center">⊕</button><i></i><button data-t="undo">↶ Undo</button></div>`;
+        <div class="vg-mini ${e.tool === 'adjust' ? 'flash' : ''}" id="vgMini">
+          <label class="sl"><b>Size</b><button data-t="zout">－</button><input type="range" id="rgS" min="30" max="250" value="${Math.round(e.scale)}"><button data-t="zin">＋</button><span id="vS">${Math.round(e.scale)}%</span></label>
+          <label class="sl"><b>Rotate</b><button data-t="rl">⟲</button><input type="range" id="rgR" min="-180" max="180" value="${Math.round(e.rot)}"><button data-t="rr">⟳</button><span id="vR">${Math.round(e.rot)}°</span></label>
+          <div class="sl2"><button data-t="flip">⇋ Flip</button><button data-t="center">⊕ Center</button><button data-t="undo">↶ Undo</button></div>
+        </div>`;
     app.innerHTML = `<div class="wrap">
       <div class="crumb"><a href="#home">⌂ Home</a> › <a href="#diy/${c.tab}?go=${c.id}">${c.tab === 'goods' ? 'Merch' : 'Gifts'} · ${c.name}</a> › <b>${esc(p.name)}</b></div>
       <div class="studio">
@@ -288,7 +299,7 @@
         </div>
       </div>
       <div class="note"><span class="pin">5</span><b>商品页 = 编辑器（两页合并）</b>：点商品卡片直接进这里，少点一层。<ol>
-        <li><b>左侧编辑区参考 Vograce</b>：顶部 规格 · Front/Back · 价格 · 3D Preview；左侧竖排工具 <b>Image</b>（换图）/ <b>Hole</b>（拖动孔位，挂扣跟着走）/ <b>Semi Transparent</b>（白底改半透明）/ Text / <b>Photos</b>（切回商品实物图集）。红线 = 贴着图案轮廓的刀线，白边自动生成；拖动移动、角点缩放、↻ 旋转、滚轮缩放。</li>
+        <li><b>左侧编辑区参考 Vograce</b>：顶部 规格 · Front/Back · 价格 · 3D Preview；左侧竖排工具 <b>Image</b>（换图）/ <b>Hole</b>（拖动孔位，挂扣跟着走）/ <b>Semi Transparent</b>（白底改半透明）/ Text / <b>Photos</b>（切回商品实物图集）。红线 = 贴着图案轮廓的刀线，白边自动生成。<br><b>缩放/旋转要一眼看得出</b>：选框和 4 个角点常显，旋转柄带连线；悬停提示 Drag to resize / rotate；拖动时显示 % / °；画布下方 Size、Rotate 两个滑杆；首次进入顶部提示条。<br><b>所有商品上传后都显示自己的图</b>：卡片 = 卡框（镭射款带彩虹反光）、徽章 = 圆形、服饰/家居/包袋 = 实物图上的印刷区（框外裁掉），上传后自动切到设计视图；Photos 切回实物图。</li>
         <li><b>右侧</b>：标题价格 → <b>Finish 工艺切换</b>（同一类的不同工艺并排小图，点了切到对应商品，后台仍是独立商品）→ 阶梯价（折叠）→ 01 上传 / 02 加字 / 03 选项（名称与同行原商品一致）→ 加购。</li>
         <li>下方保留线上详情标签页（Details / Specs / Shipping / Care）和推荐。</li></ol>
         ${p.wurl || p.curl ? `规格来源：<a href="${p.wurl || p.curl}" target="_blank" style="color:var(--accent)">${p.wurl ? 'wooacry' : 'Callie'} 原商品页 ↗</a>` : '规格来源：我们线上原商品页'}</div>
@@ -312,11 +323,12 @@
       e.mode = 'design';
       if (k === 'image') return $('#eUp').click();
       if (k === 'semi') { snap(); e.semi = !e.semi; toast(e.semi ? 'Semi transparent: white layer off' : 'White layer on'); return rer(); }
+      if (k === 'adjust') { e.tool = 'adjust'; rer(); setTimeout(() => { e.tool = ''; }, 0); return; }
       if (k === 'text') { e.tool = ''; rer(); const i = $('#txt'); i.scrollIntoView({ block: 'center' }); return i.focus(); }
       e.tool = e.tool === k ? '' : k; rer();
     });
     $('#txt').oninput = ev => { e.text = ev.target.value; const t2 = $('#edText'); if (t2) { t2.textContent = e.text; t2.style.display = e.text ? '' : 'none'; } };
-    $('#eUp').onchange = ev => onUpload(ev, rer);
+    $('#eUp').onchange = ev => onUpload(ev, () => { e.mode = 'design'; Object.assign(e, { x: 0, y: 0, scale: 100, rot: 0 }); rer(); toast(`Your artwork is on the ${p.name.replace('Custom ', '').toLowerCase()} ✓`); });
     $('#review').onclick = () => openModal(`<h2>Added to cart ✓</h2><p style="color:var(--muted)">${esc(p.name)} × ${e.qty} · ${money(unit * e.qty)}</p><div style="text-align:right;margin-top:14px"><button class="btn btn-p" onclick="closeModal()">Continue</button></div>`);
     const pv = $('#pv3d'); if (pv) pv.onclick = () => open3D(e, isKC ? R(`assets/opt/dokipo-customizer-v3-clasp_${accs[e.acc]}.webp`) : null);
     if (e.mode !== 'design') return;
@@ -330,13 +342,20 @@
     const apply = () => {
       artEl.style.transform = `translate(calc(-50% + ${e.x}px), calc(-50% + ${e.y}px)) rotate(${e.rot}deg) scale(${e.scale / 100}) scaleX(${(e.flip ? -1 : 1) * (e.side === 'back' ? -1 : 1)})`;
       txtEl.style.transform = `translate(calc(-50% + ${e.tx}px), ${e.ty}px)`;
-      const z = $('.vg-mini span'); if (z) z.textContent = Math.round(e.scale) + '%';
+      const tf = `translate(calc(-50% + ${e.x}px), calc(-50% + ${e.y}px)) rotate(${e.rot}deg) scale(${e.scale / 100}) scaleX(${(e.flip ? -1 : 1) * (e.side === 'back' ? -1 : 1)})`;
+      const ca = $('#clipArt'); if (ca) { ca.style.transform = tf; ca.style.width = artEl.offsetWidth + 'px'; ca.style.height = artEl.offsetHeight + 'px'; }
+      const vs = $('#vS'), vr = $('#vR'), gs = $('#rgS'), gr = $('#rgR');
+      if (vs) { vs.textContent = Math.round(e.scale) + '%'; gs.value = Math.round(e.scale); vr.textContent = Math.round(e.rot) + '°'; gr.value = Math.round(((e.rot + 180) % 360 + 360) % 360 - 180); }
       const rl = $('.vg-ruler-v span'); if (rl && acrylic) rl.textContent = Math.round(sizeMM[e.size] * e.scale / 100) + ' mm';
       if (hole && e.hx != null) { hole.style.left = e.hx + '%'; hole.style.top = e.hy + '%'; }
       if (clasp && e.hx != null) { clasp.style.left = e.hx + '%'; clasp.style.top = e.hy + '%'; }
     };
     const shapeR = isKC ? [0, 1, 2][e.shape] : 0;
-    makeCut(IPART(), 22, e.semi).then(k => {
+    const frame = $('#frame');
+    if (kind !== 'cut') {
+      // 非亚克力：固定印刷框，图案在框内移动/缩放/旋转（框外裁掉），透明手柄层与图案同步
+      const im = new Image(); im.onload = () => { const box = kind === 'round' ? 240 : kind === 'card' ? 230 : 200; const r = im.width / im.height; artEl.style.width = (r >= 1 ? box : box * r) + 'px'; artEl.style.height = (r >= 1 ? box / r : box) + 'px'; apply(); }; im.src = IPART();
+    } else makeCut(IPART(), 22, e.semi).then(k => {
       cut.src = k.url;
       const H = 330, Wd = Math.round(k.w * H / k.h); artEl.style.width = Wd + 'px'; artEl.style.height = H + 'px';
       artEl.classList.toggle('round', shapeR === 1); artEl.classList.toggle('rect', shapeR === 2);
@@ -350,6 +369,7 @@
       const [cx, cy] = center(); const r0 = artEl.getBoundingClientRect();
       const s0 = { ...e, mx: ev.clientX, my: ev.clientY, d: Math.hypot(ev.clientX - cx, ev.clientY - cy) || 1, a: Math.atan2(ev.clientY - cy, ev.clientX - cx) };
       artEl.classList.add('dragging');
+      const val = $('#vgVal'); const hint = $('#vgHint'); if (hint) { hint.remove(); st.hinted = true; }
       const move = m => {
         const dx = m.clientX - s0.mx, dy = m.clientY - s0.my;
         if (kind === 'move') { e.x = s0.x + dx; e.y = s0.y + dy; }
@@ -358,13 +378,17 @@
         else if (kind === 'r') e.rot = s0.rot + (Math.atan2(m.clientY - cy, m.clientX - cx) - s0.a) * 180 / Math.PI;
         else if (kind === 'hole') { const w = artEl.offsetWidth, h = artEl.offsetHeight, sc = e.scale / 100; e.hx = Math.max(4, Math.min(96, s0.hx + dx / (w * sc) * 100 * (e.flip ? -1 : 1))); e.hy = Math.max(0, Math.min(96, s0.hy + dy / (h * sc) * 100)); }
         apply();
+        if (val && (kind === 's' || kind === 'r')) { val.textContent = kind === 's' ? Math.round(e.scale) + '%' : Math.round(e.rot) + '°'; val.style.left = m.clientX - $('#vgc').getBoundingClientRect().left + 18 + 'px'; val.style.top = m.clientY - $('#vgc').getBoundingClientRect().top - 30 + 'px'; val.classList.add('on'); }
       };
-      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); artEl.classList.remove('dragging'); e.rot = Math.round(e.rot); };
+      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); artEl.classList.remove('dragging'); e.rot = Math.round(e.rot); if (val) val.classList.remove('on'); };
       addEventListener('pointermove', move); addEventListener('pointerup', up);
     };
     artEl.onpointerdown = ev => drag(ev, ev.target.dataset.h || (ev.target === hole ? 'hole' : 'move'));
     if (hole) hole.onpointerdown = ev => drag(ev, 'hole');
     txtEl.onpointerdown = ev => drag(ev, 'text');
+    $('#rgS').oninput = ev => { e.scale = +ev.target.value; apply(); }; $('#rgS').onpointerdown = snap;
+    $('#rgR').oninput = ev => { e.rot = +ev.target.value; apply(); }; $('#rgR').onpointerdown = snap;
+    const hint = $('#vgHint'); if (hint) setTimeout(() => { hint.classList.add('out'); st.hinted = true; }, 6000);
     $('#vgc').onwheel = ev => { ev.preventDefault(); e.scale = Math.max(30, Math.min(250, e.scale - ev.deltaY * 0.1)); apply(); };
     if (q.preview && pv) setTimeout(() => pv.click(), 300);
   }

@@ -32,7 +32,12 @@
       <a>🚀 Petitions <i class="live">● Live</i></a>
       <a>🎨 Creators ▾</a>
       <a>🛍 Shop ▾</a>
-      <a href="#diy/all" class="on">✏️ Make Your Own ▾</a>
+      <div class="mm" id="mm"><a href="#diy/all" class="on">✏️ Make Your Own ▾</a>
+        <div class="mm-panel"><div class="mm-in">
+          <div class="mm-promo"><span class="nm-badge">No Minimums</span><h4>Upload one picture,<br>see it on 100+ products</h4><img src="assets/mock/kc1.jpg"><p>Keychains, stickers, blankets and more. Your character, your pet, your OC.</p><a class="btn btn-p" href="#diy/all">Start Designing →</a></div>
+          <div class="mm-col"><h5>◆ Merch</h5><a href="#p/rainbow-acrylic-keychain">Keychains</a><a href="#p/clear-acrylic-stand">Acrylic Standees</a><a href="#p/die-cut-sticker">Stickers</a><a href="#p/button-badge">Badges &amp; Pins</a><a href="#diy/goods?go=cards">Cards &amp; Prints</a><a class="all" href="#diy/goods">All Merch →</a></div>
+          <div class="mm-col"><h5>◆ Personalized Gifts</h5><a href="#p/pet-portrait">Pet Portraits</a><a href="#p/name-necklace">Name Necklaces</a><a href="#p/photo-blanket">Blankets</a><a href="#p/photo-pillow">Pillows</a><a href="#p/tote-bag">Tote Bags</a><a href="#diy/gifts?go=apparel">Apparel</a><a href="#p/flip-phone-case">Phone Cases</a><a class="all" href="#diy/gifts">All Gifts →</a></div>
+        </div></div></div>
     </nav>
     <div class="hdr-r"><span>🌐 EN · USD</span><span>👤</span><span class="cart">🛒<i>2</i></span></div>
   </div>
@@ -45,5 +50,6 @@
 <script src="ipdata.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script>(()=>{const m=document.getElementById('mm');m.querySelectorAll('.mm-panel a').forEach(a=>a.addEventListener('click',()=>m.classList.add('closed')));m.addEventListener('mouseleave',()=>m.classList.remove('closed'));})();</script>
 </body>
 </html>
